@@ -1,11 +1,3 @@
-<!-- #include <math.h>
-
-    /* Function to linearly interpolate between a0 and a1
-     * Weight w should be in the range [0.0, 1.0]
-     */
-    
-     -->
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -28,10 +20,9 @@
       const WORLD_HEIGHT = 50;
       const CELL_SIZE = 10;
       const PERLIN_GRID_SCALE = 5;
-      let q = CELL_SIZE * PERLIN_GRID_SCALE;
 
       let world = [];
-      let perlin_gradients = [];
+      let perlin_grid = [];
 
       let canvas = document.querySelector("#perlin");
       let context = canvas.getContext("2d");
@@ -54,30 +45,29 @@
           }
         }
 
-        let perlin_world_height =
+        let perlin_grid_height =
           Math.floor(WORLD_HEIGHT / PERLIN_GRID_SCALE) + 1;
-        let perlin_world_width =
-          Math.floor(WORLD_WIDTH / PERLIN_GRID_SCALE) + 1;
+        let perlin_grid_width = Math.floor(WORLD_WIDTH / PERLIN_GRID_SCALE) + 1;
 
-        for (var i = 0; i < perlin_world_height; i++) {
-          perlin_gradients[i] = [];
+        for (var i = 0; i < perlin_grid_height; i++) {
+          perlin_grid[i] = [];
         }
 
-        for (var i = 0; i < perlin_world_height; i++) {
-          for (var j = 0; j < perlin_world_width; j++) {
+        for (var i = 0; i < perlin_grid_height; i++) {
+          for (var j = 0; j < perlin_grid_width; j++) {
             let r = 2 * Math.PI * Math.random();
             let gradient = { x: Math.cos(r), y: Math.sin(r) };
 
-            perlin_gradients[i][j] = {
-              x: j * CELL_SIZE * PERLIN_GRID_SCALE,
-              y: i * CELL_SIZE * PERLIN_GRID_SCALE,
+            perlin_grid[i][j] = {
+              i: i * PERLIN_GRID_SCALE,
+              j: j * PERLIN_GRID_SCALE,
               gradient: gradient,
             };
           }
         }
 
         console.log(world);
-        console.log(perlin_gradients);
+        console.log(perlin_grid);
       }
 
       // Perlin noise for cell at world[i][j]
@@ -86,6 +76,7 @@
         let pi1 = pi0 + 1;
         let pj0 = Math.floor(j / PERLIN_GRID_SCALE);
         let pj1 = pj0 + 1;
+
         console.log(
           "i",
           i,
@@ -101,44 +92,40 @@
           pj1
         );
 
-        let g00 = perlin_gradients[pi0][pj0];
-        let g01 = perlin_gradients[pi0][pj1];
-        let g10 = perlin_gradients[pi1][pj0];
-        let g11 = perlin_gradients[pi1][pj1];
-
-        let cell = world[i][j];
-        let x = cell.x + CELL_SIZE / 2;
-        let y = cell.y + CELL_SIZE / 2;
+        let g00 = perlin_grid[pi0][pj0];
+        let g01 = perlin_grid[pi0][pj1];
+        let g10 = perlin_grid[pi1][pj0];
+        let g11 = perlin_grid[pi1][pj1];
 
         // Determine interpolation weights
-        let sx = (x - g00.x) / q;
-        let sy = (y - g00.y) / q;
-        console.log("interpolation weights", sx, sy);
+        let sj = (j + 0.5 - g00.j) / PERLIN_GRID_SCALE;
+        let si = (i + 0.5 - g00.i) / PERLIN_GRID_SCALE;
+        console.log("interpolation weights", sj, si);
 
         // Interpolate between grid point gradients
-        let n0 = dotGridGradient(g00, x, y);
-        let n1 = dotGridGradient(g01, x, y);
-        let ix0 = interpolate(n0, n1, sx);
+        let n0 = dotGridGradient(g00, i, j);
+        let n1 = dotGridGradient(g01, i, j);
+        let ix0 = interpolate(n0, n1, sj);
 
         console.log("n0 n1 ix0", n0, n1, ix0);
 
-        n0 = dotGridGradient(g10, x, y);
-        n1 = dotGridGradient(g11, x, y);
-        let ix1 = interpolate(n0, n1, sx);
+        n0 = dotGridGradient(g10, i, j);
+        n1 = dotGridGradient(g11, i, j);
+        let ix1 = interpolate(n0, n1, sj);
 
-        return interpolate(ix0, ix1, sy);
+        return interpolate(ix0, ix1, si);
       }
 
       // Computes the dot product of the distance and gradient vectors.
-      function dotGridGradient(gradient, x, y) {
+      function dotGridGradient(cell, i, j) {
         // Compute the distance vector
-        let dx = (x - gradient.x) / q;
-        let dy = (y - gradient.y) / q;
+        let dj = (j + 0.5 - cell.j) / PERLIN_GRID_SCALE;
+        let di = (i + 0.5 - cell.i) / PERLIN_GRID_SCALE;
 
-        console.log("dist", dx, dy);
+        console.log("dist", dj, di);
 
         // Compute the dot-product
-        return dx * gradient.gradient.x + dy * gradient.gradient.y;
+        return dj * cell.gradient.x + di * cell.gradient.y;
       }
 
       function interpolate(a0, a1, w) {
