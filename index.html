@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Page Title</title>
+    <title>sc</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- <link rel="stylesheet" type="text/css" media="screen" href="main.css" /> -->
 
@@ -14,7 +14,15 @@
     </style>
   </head>
   <body>
-    <p>sc</p>
+    <h1>sc</h1>
+
+    <p>mode: <span id="mode"></span></p>
+    <button id="bulldozer" onclick="toggleMode('bulldozer')">Bulldozer</button>
+    <button id="buildHouse" onclick="toggleMode('buildHouse')">
+      Build house
+    </button>
+    <button id="buildRoad" onclick="toggleMode('buildRoad')">Build road</button>
+
     <div style="position: relative">
       <canvas
         id="map"

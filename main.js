@@ -9,10 +9,12 @@ const WORLD_WIDTH = Math.floor(mapCanvas.width / CELL_SIZE);
 const WORLD_HEIGHT = Math.floor(mapCanvas.height / CELL_SIZE);
 const NOISE_SCALE = 5;
 
-const TILES = {
-  land: { fill: "#F8EA87" },
-  forest: { fill: "green" },
-  water: { fill: "#87DDF8" },
+const CELL_TYPES = {
+  land: { fill: "#F8EA87", canBuild: true, canBulldoze: false },
+  forest: { fill: "green", canBuild: true, canBulldoze: true },
+  water: { fill: "#87DDF8", canBuild: false, canBulldoze: false },
+  house: { fill: "orange", canBuild: false, canBulldoze: true },
+  road: { fill: "gray", canBuild: false, canBulldoze: true },
 };
 
 let world = [];
@@ -20,7 +22,22 @@ let elevation;
 let hovering = false;
 let hovered;
 
+let currentMode;
+
 start();
+
+function changeMode(mode) {
+  currentMode = mode;
+  document.querySelector("#mode").innerHTML = mode;
+}
+
+function toggleMode(mode) {
+  if (currentMode === mode) {
+    changeMode("hover");
+  } else {
+    changeMode(mode);
+  }
+}
 
 function setMousePosition(e) {
   let rect = hoverCanvas.getBoundingClientRect();
@@ -44,11 +61,41 @@ function resetHovering(e) {
   hovered = null;
 }
 
+function click(e) {
+  if (hovering) {
+    let hoveredCellType = CELL_TYPES[hovered.type];
+    switch (currentMode) {
+      case "bulldozer":
+        if (hoveredCellType.canBulldoze) {
+          hovered.type = "land";
+          drawWorld();
+        }
+        break;
+      case "buildHouse":
+        if (hoveredCellType.canBuild) {
+          hovered.type = "house";
+          drawWorld();
+        }
+        break;
+      case "buildRoad":
+        if (hoveredCellType.canBuild) {
+          hovered.type = "road";
+          drawWorld();
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 function start() {
   init_world();
   drawWorld();
+  changeMode("hover");
   hoverCanvas.addEventListener("mousemove", setMousePosition, false);
   hoverCanvas.addEventListener("mouseleave", resetHovering, false);
+  hoverCanvas.addEventListener("click", click, false);
   update();
 }
 
@@ -95,7 +142,7 @@ function drawWorld() {
 
       mapContext.beginPath();
       mapContext.rect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
-      mapContext.fillStyle = TILES[cell.type].fill;
+      mapContext.fillStyle = CELL_TYPES[cell.type].fill;
       mapContext.fill();
     }
   }
