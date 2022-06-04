@@ -1,0 +1,176 @@
+<!-- #include <math.h>
+
+    /* Function to linearly interpolate between a0 and a1
+     * Weight w should be in the range [0.0, 1.0]
+     */
+    
+     -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Perlin Noise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="perlin" width="500" height="500"></canvas>
+
+    <script>
+      const WORLD_WIDTH = 50;
+      const WORLD_HEIGHT = 50;
+      const CELL_SIZE = 10;
+      const PERLIN_GRID_SCALE = 5;
+      let q = CELL_SIZE * PERLIN_GRID_SCALE;
+
+      let world = [];
+      let perlin_gradients = [];
+
+      let canvas = document.querySelector("#perlin");
+      let context = canvas.getContext("2d");
+
+      start();
+
+      function start() {
+        init_world();
+        update();
+      }
+
+      function init_world() {
+        for (var i = 0; i < WORLD_HEIGHT; i++) {
+          world[i] = [];
+        }
+
+        for (var i = 0; i < WORLD_HEIGHT; i++) {
+          for (var j = 0; j < WORLD_WIDTH; j++) {
+            world[i][j] = { x: j * CELL_SIZE, y: i * CELL_SIZE, type: "land" };
+          }
+        }
+
+        let perlin_world_height =
+          Math.floor(WORLD_HEIGHT / PERLIN_GRID_SCALE) + 1;
+        let perlin_world_width =
+          Math.floor(WORLD_WIDTH / PERLIN_GRID_SCALE) + 1;
+
+        for (var i = 0; i < perlin_world_height; i++) {
+          perlin_gradients[i] = [];
+        }
+
+        for (var i = 0; i < perlin_world_height; i++) {
+          for (var j = 0; j < perlin_world_width; j++) {
+            let r = 2 * Math.PI * Math.random();
+            let gradient = { x: Math.cos(r), y: Math.sin(r) };
+
+            perlin_gradients[i][j] = {
+              x: j * CELL_SIZE * PERLIN_GRID_SCALE,
+              y: i * CELL_SIZE * PERLIN_GRID_SCALE,
+              gradient: gradient,
+            };
+          }
+        }
+
+        console.log(world);
+        console.log(perlin_gradients);
+      }
+
+      // Perlin noise for cell at world[i][j]
+      function perlin(i, j) {
+        let pi0 = Math.floor(i / PERLIN_GRID_SCALE);
+        let pi1 = pi0 + 1;
+        let pj0 = Math.floor(j / PERLIN_GRID_SCALE);
+        let pj1 = pj0 + 1;
+        console.log(
+          "i",
+          i,
+          "j",
+          j,
+          "pi0",
+          pi0,
+          "pi1",
+          pi1,
+          "pj0",
+          pj0,
+          "pj1",
+          pj1
+        );
+
+        let g00 = perlin_gradients[pi0][pj0];
+        let g01 = perlin_gradients[pi0][pj1];
+        let g10 = perlin_gradients[pi1][pj0];
+        let g11 = perlin_gradients[pi1][pj1];
+
+        let cell = world[i][j];
+        let x = cell.x + CELL_SIZE / 2;
+        let y = cell.y + CELL_SIZE / 2;
+
+        // Determine interpolation weights
+        let sx = (x - g00.x) / q;
+        let sy = (y - g00.y) / q;
+        console.log("interpolation weights", sx, sy);
+
+        // Interpolate between grid point gradients
+        let n0 = dotGridGradient(g00, x, y);
+        let n1 = dotGridGradient(g01, x, y);
+        let ix0 = interpolate(n0, n1, sx);
+
+        console.log("n0 n1 ix0", n0, n1, ix0);
+
+        n0 = dotGridGradient(g10, x, y);
+        n1 = dotGridGradient(g11, x, y);
+        let ix1 = interpolate(n0, n1, sx);
+
+        return interpolate(ix0, ix1, sy);
+      }
+
+      // Computes the dot product of the distance and gradient vectors.
+      function dotGridGradient(gradient, x, y) {
+        // Compute the distance vector
+        let dx = (x - gradient.x) / q;
+        let dy = (y - gradient.y) / q;
+
+        console.log("dist", dx, dy);
+
+        // Compute the dot-product
+        return dx * gradient.gradient.x + dy * gradient.gradient.y;
+      }
+
+      function interpolate(a0, a1, w) {
+        return (a1 - a0) * w + a0;
+      }
+
+      function update() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0; i < WORLD_HEIGHT; i++) {
+          for (var j = 0; j < WORLD_WIDTH; j++) {
+            const cell = world[i][j];
+
+            context.beginPath();
+            context.rect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
+
+            let alpha = (1 + perlin(i, j)) / 2;
+            console.log("alpha", alpha);
+
+            // if (alpha > 0.55) {
+            //   context.fillStyle = "white";
+            // } else {
+            //   context.fillStyle = "black";
+            // }
+
+            context.fillStyle = "rgba(0, 0, 0, " + alpha + ")";
+            context.fill();
+          }
+        }
+
+        // requestAnimationFrame(update);
+      }
+    </script>
+  </body>
+</html>

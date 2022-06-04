@@ -7,6 +7,16 @@ const TILES = {
   water: { fill: "#87DDF8" },
 };
 
+// const DIRECTIONS = ["north", "east", "south", "west"];
+const DIRECTIONS = ["south"];
+
+function getRandomDirection() {
+  var rand = Math.random();
+  rand *= DIRECTIONS.length; //(5)
+
+  return DIRECTIONS[Math.floor(rand)];
+}
+
 let world = [];
 let hovered;
 
@@ -48,13 +58,50 @@ function init_world() {
 
   for (var i = 0; i < WORLD_HEIGHT; i++) {
     for (var j = 0; j < WORLD_WIDTH; j++) {
-      let type = "land";
-      if (Math.random() > 0.5) {
-        type = "water";
-      }
-
-      world[i][j] = { x: j * GRID_SIZE, y: i * GRID_SIZE, type: type };
+      world[i][j] = { x: j * GRID_SIZE, y: i * GRID_SIZE, type: "land" };
     }
+  }
+
+  createSea();
+}
+
+function createSea() {
+  let coast = getRandomDirection();
+  console.log("coast", coast);
+
+  switch (coast) {
+    case "north":
+      var i = 0;
+      for (var j = 0; j < WORLD_WIDTH; j++) {
+        world[i][j].type = "water";
+      }
+      break;
+    case "east":
+      var j = WORLD_WIDTH - 1;
+      for (var i = 0; i < WORLD_HEIGHT; i++) {
+        world[i][j].type = "water";
+      }
+      break;
+    case "south":
+      var i = WORLD_HEIGHT - 1;
+      for (var j = 0; j < WORLD_WIDTH; j++) {
+        world[i][j].type = "water";
+      }
+      i = WORLD_HEIGHT - 2;
+      for (var j = 1; j < WORLD_WIDTH - 1; j = j + 3) {
+        if (Math.random() > 0.5) {
+          world[i][j - 1].type = "water";
+          world[i][j].type = "water";
+          world[i][j + 1].type = "water";
+        }
+      }
+      break;
+    default:
+      var j = 0;
+      for (var i = 0; i < WORLD_HEIGHT; i++) {
+        world[i][j].type = "water";
+      }
+      break;
   }
 }
 
