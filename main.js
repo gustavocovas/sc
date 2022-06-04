@@ -1,130 +1,117 @@
-const WORLD_WIDTH = 25;
-const WORLD_HEIGHT = 25;
-const GRID_SIZE = 20;
+let mapCanvas = document.querySelector("#map");
+let mapContext = mapCanvas.getContext("2d");
+
+let hoverCanvas = document.querySelector("#hover");
+let hoverContext = hoverCanvas.getContext("2d");
+
+const CELL_SIZE = 20;
+const WORLD_WIDTH = Math.floor(mapCanvas.width / CELL_SIZE);
+const WORLD_HEIGHT = Math.floor(mapCanvas.height / CELL_SIZE);
+const NOISE_SCALE = 5;
 
 const TILES = {
   land: { fill: "#F8EA87" },
+  forest: { fill: "green" },
   water: { fill: "#87DDF8" },
 };
 
-// const DIRECTIONS = ["north", "east", "south", "west"];
-const DIRECTIONS = ["south"];
-
-function getRandomDirection() {
-  var rand = Math.random();
-  rand *= DIRECTIONS.length; //(5)
-
-  return DIRECTIONS[Math.floor(rand)];
-}
-
 let world = [];
+let elevation;
+let hovering = false;
 let hovered;
-
-let canvas = document.querySelector("#tutorial");
-let context = canvas.getContext("2d");
 
 start();
 
 function setMousePosition(e) {
-  let rect = canvas.getBoundingClientRect();
+  let rect = hoverCanvas.getBoundingClientRect();
   let mouseX = e.clientX - rect.left;
   let mouseY = e.clientY - rect.top;
 
-  let i = Math.floor(mouseY / GRID_SIZE);
-  let j = Math.floor(mouseX / GRID_SIZE);
+  let i = Math.floor(mouseY / CELL_SIZE);
+  let j = Math.floor(mouseX / CELL_SIZE);
 
   if (!!world[i] && !!world[i][j]) {
+    hovering = true;
     hovered = world[i][j];
   } else {
+    hovering = false;
     hovered = null;
   }
 }
 
 function resetHovering(e) {
+  hovering = false;
   hovered = null;
 }
 
 function start() {
   init_world();
-  canvas.addEventListener("mousemove", setMousePosition, false);
-  canvas.addEventListener("mouseleave", resetHovering, false);
+  drawWorld();
+  hoverCanvas.addEventListener("mousemove", setMousePosition, false);
+  hoverCanvas.addEventListener("mouseleave", resetHovering, false);
   update();
 }
 
 function init_world() {
+  elevation = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
+  fertility = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
+
   for (var i = 0; i < WORLD_HEIGHT; i++) {
     world[i] = [];
   }
 
   for (var i = 0; i < WORLD_HEIGHT; i++) {
     for (var j = 0; j < WORLD_WIDTH; j++) {
-      world[i][j] = { x: j * GRID_SIZE, y: i * GRID_SIZE, type: "land" };
-    }
-  }
+      let e = elevation.at(i, j);
 
-  createSea();
-}
+      let type = "water";
+      if (e > 0.45) {
+        type = "land";
 
-function createSea() {
-  let coast = getRandomDirection();
-  console.log("coast", coast);
-
-  switch (coast) {
-    case "north":
-      var i = 0;
-      for (var j = 0; j < WORLD_WIDTH; j++) {
-        world[i][j].type = "water";
-      }
-      break;
-    case "east":
-      var j = WORLD_WIDTH - 1;
-      for (var i = 0; i < WORLD_HEIGHT; i++) {
-        world[i][j].type = "water";
-      }
-      break;
-    case "south":
-      var i = WORLD_HEIGHT - 1;
-      for (var j = 0; j < WORLD_WIDTH; j++) {
-        world[i][j].type = "water";
-      }
-      i = WORLD_HEIGHT - 2;
-      for (var j = 1; j < WORLD_WIDTH - 1; j = j + 3) {
-        if (Math.random() > 0.5) {
-          world[i][j - 1].type = "water";
-          world[i][j].type = "water";
-          world[i][j + 1].type = "water";
+        let f = fertility.at(i, j);
+        if (f > 0.5) {
+          type = "forest";
         }
       }
-      break;
-    default:
-      var j = 0;
-      for (var i = 0; i < WORLD_HEIGHT; i++) {
-        world[i][j].type = "water";
-      }
-      break;
+
+      world[i][j] = { x: j * CELL_SIZE, y: i * CELL_SIZE, type: type };
+    }
   }
 }
 
-function update() {
-  context.clearRect(0, 0, canvas.width, canvas.height);
+function isHovering(cell) {
+  return hovering && hovered.x === cell.x && hovered.y === cell.y;
+}
+
+function drawWorld() {
+  mapContext.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
 
   for (var i = 0; i < WORLD_HEIGHT; i++) {
     for (var j = 0; j < WORLD_WIDTH; j++) {
       const cell = world[i][j];
 
-      if (!!hovered && hovered.x === cell.x && hovered.y === cell.y) {
-        context.beginPath();
-        context.rect(cell.x, cell.y, GRID_SIZE, GRID_SIZE);
-        context.fillStyle = "#41FFFF";
-        context.fill();
-      } else {
-        context.fillStyle = "black";
-        context.strokeRect(cell.x, cell.y, GRID_SIZE, GRID_SIZE);
+      mapContext.fillStyle = "black";
+      mapContext.strokeRect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
 
-        context.beginPath();
-        context.rect(cell.x, cell.y, GRID_SIZE, GRID_SIZE);
-        context.fillStyle = TILES[cell.type].fill;
-        context.fill();
+      mapContext.beginPath();
+      mapContext.rect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
+      mapContext.fillStyle = TILES[cell.type].fill;
+      mapContext.fill();
+    }
+  }
+}
+
+function update() {
+  hoverContext.clearRect(0, 0, hoverCanvas.width, hoverCanvas.height);
+
+  for (var i = 0; i < WORLD_HEIGHT; i++) {
+    for (var j = 0; j < WORLD_WIDTH; j++) {
+      let cell = world[i][j];
+      if (isHovering(cell)) {
+        hoverContext.beginPath();
+        hoverContext.rect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
+        hoverContext.fillStyle = "rgba(41,255,255,0.5)";
+        hoverContext.fill();
       }
     }
   }

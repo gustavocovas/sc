@@ -15,8 +15,22 @@
   </head>
   <body>
     <p>sc</p>
-    <canvas id="tutorial" width="500" height="500"></canvas>
+    <div style="position: relative">
+      <canvas
+        id="map"
+        width="800"
+        height="600"
+        style="position: absolute; left: 0; top: 0; z-index: 0"
+      ></canvas>
+      <canvas
+        id="hover"
+        width="800"
+        height="600"
+        style="position: absolute; left: 0; top: 0; z-index: 1"
+      ></canvas>
+    </div>
 
+    <script src="noise.js"></script>
     <script src="main.js"></script>
   </body>
 </html>
