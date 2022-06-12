@@ -34,36 +34,48 @@ function fillFromColor(color) {
   return "rgb(" + color.r + "," + color.g + "," + color.b + ")";
 }
 
+function fillForLandValue(landValue) {
+  let colorScale = ["red", "orange", "yellow", "green", "darkgreen"];
+  let i = Math.floor((80 + landValue) / 60);
+  return fillFromColor(COLORS[colorScale[i]]);
+}
+
 const CELL_TYPES = {
   land: {
     fill: fillFromColor(COLORS["tan"]),
     canBuild: true,
     canBulldoze: false,
+    landValue: 5,
   },
   forest: {
     fill: fillFromColor(COLORS["darkgreen"]),
     canBuild: true,
     canBulldoze: true,
+    landValue: 20,
   },
   water: {
     fill: fillFromColor(COLORS["blue"]),
     canBuild: false,
     canBulldoze: false,
+    landValue: 20,
   },
   house: {
     fill: fillFromColor(COLORS["orange"]),
     canBuild: false,
     canBulldoze: true,
+    landValue: 10,
   },
   road: {
     fill: fillFromColor(COLORS["darkgrey"]),
     canBuild: false,
     canBulldoze: true,
+    landValue: -5,
   },
   powerplant: {
     fill: fillFromColor(COLORS["purple"]),
     canBuild: false,
     canBulldoze: true,
+    landValue: -10,
   },
 };
 
@@ -184,12 +196,14 @@ function click(e) {
           break;
       }
     }
+    updateLandValue();
     drawWorld();
   }
 }
 
 function start() {
   init_world();
+  updateLandValue();
   drawWorld();
   changeMode("query");
   hoverCanvas.addEventListener("mousemove", setMousePosition, false);
@@ -220,7 +234,12 @@ function init_world() {
         }
       }
 
-      world[i][j] = { x: j * CELL_SIZE, y: i * CELL_SIZE, type: type };
+      world[i][j] = {
+        x: j * CELL_SIZE,
+        y: i * CELL_SIZE,
+        type: type,
+        landValue: 0,
+      };
     }
   }
 }
@@ -273,8 +292,31 @@ function drawWorld() {
         minimap_cell_size
       );
 
-      minimapContext.fillStyle = CELL_TYPES[cell.type].fill;
+      minimapContext.fillStyle = fillForLandValue(cell.landValue);
       minimapContext.fill();
+    }
+  }
+}
+
+function updateLandValue() {
+  for (var i = 0; i < WORLD_HEIGHT; i++) {
+    for (var j = 0; j < WORLD_WIDTH; j++) {
+      const cell = world[i][j];
+      cell.landValue = 0;
+
+      if (cell.type === "water") {
+        continue;
+      }
+
+      for (var r = i - 1; r <= i + 1; r++) {
+        for (var c = j - 1; c <= j + 1; c++) {
+          if (r > 0 && r < WORLD_HEIGHT && c > 0 && c < WORLD_WIDTH) {
+            if (r !== i || c !== j) {
+              world[i][j].landValue += CELL_TYPES[world[r][c].type].landValue;
+            }
+          }
+        }
+      }
     }
   }
 }
