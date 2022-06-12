@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "outDir": "dist",
+    "removeComments": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noImplicitThis": true,
+    "inlineSourceMap": true
+  },
+  "include": ["main.ts"],
+  "exclude": ["node_modules"]
+}
