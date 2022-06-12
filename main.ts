@@ -1,16 +1,31 @@
-let mapCanvas = document.querySelector("#map");
+import { Noise } from "./noise";
+
+let mapCanvas: HTMLCanvasElement = document.querySelector("#map");
 let mapContext = mapCanvas.getContext("2d");
 
-let hoverCanvas = document.querySelector("#hover");
+let hoverCanvas: HTMLCanvasElement = document.querySelector("#hover");
 let hoverContext = hoverCanvas.getContext("2d");
 
-let minimapCanvas = document.querySelector("#minimap");
+let minimapCanvas: HTMLCanvasElement = document.querySelector("#minimap");
 let minimapContext = minimapCanvas.getContext("2d");
 
 const CELL_SIZE = 20;
 const WORLD_WIDTH = Math.floor(mapCanvas.width / CELL_SIZE);
 const WORLD_HEIGHT = Math.floor(mapCanvas.height / CELL_SIZE);
 const NOISE_SCALE = 5;
+
+interface Color {
+  r: number;
+  g: number;
+  b: number;
+}
+
+interface Cell {
+  x: number;
+  y: number;
+  type: string;
+  landValue: number;
+}
 
 const COLORS = {
   yellow: { r: 252, g: 244, b: 4 },
@@ -30,7 +45,7 @@ const COLORS = {
   black: { r: 0, g: 0, b: 0 },
 };
 
-function fillFromColor(color) {
+function fillFromColor(color: Color): string {
   return "rgb(" + color.r + "," + color.g + "," + color.b + ")";
 }
 
@@ -88,8 +103,7 @@ const MODE_HOVER_DIMENSIONS = {
   buildPowerplant: { width: 3, height: 2 },
 };
 
-let world = [];
-let elevation;
+let world: Cell[][] = [];
 let hovering = false;
 let hoveringIllegal = false;
 let hovered = [];
@@ -213,8 +227,8 @@ function start() {
 }
 
 function init_world() {
-  elevation = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
-  fertility = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
+  let elevation = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
+  let fertility = new Noise(WORLD_WIDTH, WORLD_HEIGHT, NOISE_SCALE);
 
   for (var i = 0; i < WORLD_HEIGHT; i++) {
     world[i] = [];
@@ -244,7 +258,7 @@ function init_world() {
   }
 }
 
-function isHovering(cell) {
+function isHovering(cell: Cell) {
   if (!hovering) {
     return false;
   }

@@ -1,0 +1,25 @@
+{
+  "name": "sc",
+  "version": "0.0.1",
+  "description": "City-building game based on canvas",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gustavocovas/sc.git"
+  },
+  "author": "Gustavo Covas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gustavocovas/sc/issues"
+  },
+  "homepage": "https://github.com/gustavocovas/sc#readme",
+  "devDependencies": {
+    "typescript": "^4.7.3"
+  },
+  "dependencies": {
+    "npm": "^8.12.1"
+  }
+}
