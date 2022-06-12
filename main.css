@@ -1,3 +1,7 @@
+canvas {
+  border: 1px solid black;
+}
+
 .lightgrey {
   background-color: rgb(192, 192, 192);
 }

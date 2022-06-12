@@ -4,6 +4,9 @@ let mapContext = mapCanvas.getContext("2d");
 let hoverCanvas = document.querySelector("#hover");
 let hoverContext = hoverCanvas.getContext("2d");
 
+let minimapCanvas = document.querySelector("#minimap");
+let minimapContext = minimapCanvas.getContext("2d");
+
 const CELL_SIZE = 20;
 const WORLD_WIDTH = Math.floor(mapCanvas.width / CELL_SIZE);
 const WORLD_HEIGHT = Math.floor(mapCanvas.height / CELL_SIZE);
@@ -250,6 +253,28 @@ function drawWorld() {
       mapContext.rect(cell.x, cell.y, CELL_SIZE, CELL_SIZE);
       mapContext.fillStyle = CELL_TYPES[cell.type].fill;
       mapContext.fill();
+    }
+  }
+
+  minimapContext.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+
+  for (var i = 0; i < WORLD_HEIGHT; i++) {
+    for (var j = 0; j < WORLD_WIDTH; j++) {
+      const cell = world[i][j];
+
+      let minimap_cell_size = 2;
+
+      minimapContext.beginPath();
+
+      minimapContext.rect(
+        j * minimap_cell_size,
+        i * minimap_cell_size,
+        minimap_cell_size,
+        minimap_cell_size
+      );
+
+      minimapContext.fillStyle = CELL_TYPES[cell.type].fill;
+      minimapContext.fill();
     }
   }
 }
