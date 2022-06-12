@@ -1,0 +1,14 @@
+.lightgrey {
+  background-color: rgb(192, 192, 192);
+}
+
+.mediumgrey {
+  background-color: rgb(128, 128, 128);
+}
+.darkgrey {
+  background-color: rgb(64, 64, 64);
+}
+
+.blue {
+  background-color: rgb(0, 0, 255);
+}
